@@ -8,6 +8,7 @@
  */
 
 var globe, dispatch;
+var isRandomizing = false;
 var modalContent = {
   title: "",
   body: "",
@@ -992,24 +993,30 @@ var modalContent = {
     });
   }
 
+  var timer;
+
   function randomizer() {
     // https://worldmap.harvard.edu/data/geonode:country_centroids_az8
 
-    //When user clicks it should prohibit it to move or click the button again;
+    if(isRandomizing) {
+      timer.stop();
+    }
+
+    isRandomizing = true;
 
     var randomIndex = getRandomInt(193);
     var vtLong = jsonRandom[randomIndex].Longitude;
     var vtLat = jsonRandom[randomIndex].Latitude;
     // var vtCountry = jsonRandom[randomIndex].country;
 
-    var speed = 0.05;
+    const speed = 0.05;
+    const threshold = 1;
 
     const desiredRotation = [vtLat, vtLong, 0];
-    const threshold = 1;
 
     dispatch.trigger("moveStart");
 
-    var timer = d3.timer(() => {
+    timer = d3.timer(() => {
       var currentRotation = globe.projection.rotate();
 
       var closeEnough =
@@ -1023,6 +1030,7 @@ var modalContent = {
 
         setTimeout(() => {
           dispatch.trigger("moveEnd");
+          isRandomizing = false; //Everything has finished
         }, 3000);
       }
 
