@@ -10,13 +10,6 @@ console.log(new Date().toISOString() + " - Starting");
 var util = require("util");
 
 /**
- * Returns true if the response should be compressed.
- */
-function compressionFilter(req, res) {
-    return (/json|text|javascript|font/).test(res.getHeader('Content-Type'));
-}
-
-/**
  * Adds headers to a response to enable caching.
  */
 function cacheControl() {
@@ -48,7 +41,6 @@ var request = require("request");
 
 //Cause crashes
 app.use(cacheControl());
-//app.use(express.compress({filter: compressionFilter}));
 app.use(logger());
 app.use(express.static("public"));
 
@@ -65,7 +57,6 @@ class DataNasa {
 }
 
 function getNasaStuff(place, req, res){
-    const quantity = 10;
     var url = "https://images-api.nasa.gov/search?q=" + place;
 
     request(url, function (error, response, body){
@@ -73,10 +64,14 @@ function getNasaStuff(place, req, res){
             res.json({"Error":"The NASA's servers are not working correctly"});
         }
         else {
-            var items = JSON.parse(body)["collection"]["items"];
+            var content = JSON.parse(body);
+            var items = content["collection"]["items"];
             var ready = 0;
 
+            const quantity = content.collection.metadata.total_hits > 10 ? 10 : content.collection.metadata.total_hits;
+
             for (var i = 0; i < quantity-1; i++) {
+                
                 items[i] = new DataNasa(items[i]);
 
                 request(items[i].multimedia_url, function (error, response, body){
@@ -133,7 +128,6 @@ app.get('/api/basic', function(req, res){
 
             if(content.hasOwnProperty("address")) {
                 var country = alpha2_to_country[content["address"]["country_code"].toUpperCase()];
-                console.log(content);
                 getNasaStuff(country, req, res);
             }
             //User hits ocean
@@ -144,10 +138,6 @@ app.get('/api/basic', function(req, res){
             }
         }
     });
-});
-
-app.get('/api/gravity', function(req, res){
-
 });
 
 
@@ -404,4 +394,4 @@ const alpha2_to_country = {
     "ZA": "South Africa",
     "ZM": "Zambia",
     "ZW": "Zimbabwe"
-  };
+};
