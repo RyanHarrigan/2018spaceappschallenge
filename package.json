@@ -33,6 +33,6 @@
     "grunt-contrib-watch": "^1.1.0",
     "htmlhint": "^0.11.0",
     "install": "^0.12.2",
-    "npm": "^6.4.1"
+    "npm": "^6.13.4"
   }
 }
